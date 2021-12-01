@@ -44,8 +44,20 @@ app.get("/quotes/:id", async (req, res) => {
   res.send(await getData({ url, clase: "text" }));
 });
 
-app.get("/authors", (req, res) => {
-  res.send(messageExpressServer);
+app.get("/authors", async (req, res) => {
+  let arr = [];
+  let url = "https://quotes.toscrape.com/";
+  for (let index = 0; index < 10; index++) {
+    let arrForPage = await getData({ url, clase: "author" });
+    arr = arr.concat(arrForPage);
+  }
+  res.send(arr);
+});
+
+app.get("/authors/:id", async (req, res) => {
+  let { id } = req.params;
+  let url = `https://quotes.toscrape.com/page/${id}`;
+  res.send(await getData({ url, clase: "author" }));
 });
 
 server.listen(port, () => {
