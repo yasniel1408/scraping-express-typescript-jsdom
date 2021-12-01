@@ -46,7 +46,7 @@ app.get("/quotes/:id", async (req, res) => {
 
 app.get("/authors", async (req, res) => {
   let arr = [];
-  let url = "https://quotes.toscrape.com/";
+  let url = "https://quotes.toscrape.com/author";
   for (let index = 0; index < 10; index++) {
     let arrForPage = await getData({ url, clase: "author" });
     arr = arr.concat(arrForPage);
