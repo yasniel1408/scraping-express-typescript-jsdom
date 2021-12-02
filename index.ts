@@ -17,48 +17,64 @@ app.get("/", (req, res) => {
   res.send(messageExpressServer);
 });
 
-const getData = async ({ url, clase }) => {
-  let arr = [];
-  let { data } = await axios.get(url);
-  const dom = new JSDOM(data);
-  let list = dom.window.document.querySelectorAll(`.${clase}`);
-  list.forEach((element) => {
-    arr.push({ [clase]: element.innerHTML });
-  });
-  return arr;
-};
-
-app.get("/quotes", async (req, res) => {
-  let arr = [];
-  let url = "https://quotes.toscrape.com/";
-  for (let index = 0; index < 10; index++) {
-    let arrForPage = await getData({ url, clase: "text" });
-    arr = arr.concat(arrForPage);
-  }
-  res.send(arr);
-});
-
-app.get("/quotes/:id", async (req, res) => {
-  let { id } = req.params;
-  let url = `https://quotes.toscrape.com/page/${id}`;
-  res.send(await getData({ url, clase: "text" }));
-});
-
 app.get("/authors", async (req, res) => {
-  let arr = [];
-  let url = "https://quotes.toscrape.com/author";
-  for (let index = 0; index < 10; index++) {
-    let arrForPage = await getData({ url, clase: "author" });
-    arr = arr.concat(arrForPage);
+  let arrResponse = [];
+
+  const getInfoAuthor = async ({ name }) => {
+    let { data } = await axios(
+      `https://quotes.toscrape.com/author/${name
+        .replace(/ /, "-")
+        .replace(/\. /g, "")}`
+    );
+    const dom = new JSDOM(data);
+    let bornDate =
+      dom.window.document.querySelector(`.author-born-date`).textContent;
+    let bornLocation = dom.window.document.querySelector(
+      `.author-born-location`
+    ).textContent;
+    let description =
+      dom.window.document.querySelector(`.author-description`).textContent;
+    arrResponse = arrResponse.concat({
+      name,
+      bornDate,
+      bornLocation,
+      description,
+    });
+  };
+
+  for (let index = 1; index <= 10; index++) {
+    let { data } = await axios.get(`https://quotes.toscrape.com/page/${index}`);
+    const dom = new JSDOM(data);
+    let nodeList = dom.window.document.querySelectorAll(`.author`);
+    nodeList.forEach((element) => {
+      getInfoAuthor({ name: element.innerHTML });
+    });
   }
-  res.send(arr);
+
+  res.send(arrResponse);
 });
 
-app.get("/authors/:id", async (req, res) => {
-  let { id } = req.params;
-  let url = `https://quotes.toscrape.com/page/${id}`;
-  res.send(await getData({ url, clase: "author" }));
-});
+// app.get("/authors/:id", async (req, res) => {
+//   let { id } = req.params;
+//   let url = `https://quotes.toscrape.com/page/${id}`;
+//   res.send(await getData({ url, clase: "author" }));
+// });
+
+// app.get("/quotes", async (req, res) => {
+//   let arr = [];
+//   let url = "https://quotes.toscrape.com/";
+//   for (let index = 0; index < 10; index++) {
+//     let arrForPage = await getData({ url, clase: "text" });
+//     arr = arr.concat(arrForPage);
+//   }
+//   res.send(arr);
+// });
+
+// app.get("/quotes/:id", async (req, res) => {
+//   let { id } = req.params;
+//   let url = `https://quotes.toscrape.com/page/${id}`;
+//   res.send(await getData({ url, clase: "text" }));
+// });
 
 server.listen(port, () => {
   console.log(messageExpressServer);
